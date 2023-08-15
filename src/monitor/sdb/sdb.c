@@ -52,6 +52,25 @@ static int cmd_q(char *args) {
   return -1;
 }
 
+static int cmd_si(char *args) {
+  char *arg = strtok(NULL,"");
+  int steps = 0;
+
+  if(arg == NULL){
+    cpu_exec(1);
+    return 0;
+  }
+  else{
+    sscanf(arg, "%d", &steps);
+    if(steps < -1){
+      printf("Error steps \n");
+      return 0;
+    }
+    cpu_exec(steps);
+  }
+
+  return 0;
+}
 static int cmd_help(char *args);
 
 static struct {
@@ -62,7 +81,7 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
-
+  { "si", "execute cpu once", cmd_si},
   /* TODO: Add more commands */
 
 };
@@ -106,7 +125,7 @@ void sdb_mainloop() {
     char *str_end = str + strlen(str);
 
     /* extract the first token as the command */
-    char *cmd = strtok(str, " ");
+    char *cmd = strtok(str, " "); // strtok first time is called
     if (cmd == NULL) { continue; }
 
     /* treat the remaining string as the arguments,
@@ -125,7 +144,7 @@ void sdb_mainloop() {
     int i;
     for (i = 0; i < NR_CMD; i ++) {
       if (strcmp(cmd, cmd_table[i].name) == 0) {
-        if (cmd_table[i].handler(args) < 0) { return; }
+        if (cmd_table[i].handler(args) < 0) { nemu_state.state= NEMU_QUIT; return; } // return -1
         break;
       }
     }
